@@ -1,22 +1,22 @@
-# Installation and Configuration Guide
+# 安装和配置指南
 
-Harbor can be installed by one of two approaches:
+Harbor可以通过以下两种方式安装:
 
-- **Online installer:** The installer downloads Harbor's images from Docker hub. For this reason, the installer is very small in size.
+- **在线安装程序:** 安装程序从Docker hub下载Harbor的图像。因此，安装程序非常小。
 
-- **Offline installer:** Use this installer when the host does not have an Internet connection. The installer contains pre-built images so its size is larger.
+- **离线安装程序:** 使用此安装程序时，主机没有互联网连接。安装程序包含预构建的映像，因此其大小较大。
 
-All installers can be downloaded from the **[official release](https://github.com/goharbor/harbor/releases)** page.
+所有安装程序都可以从 **[官方发布](https://github.com/goharbor/harbor/releases)** 页面下载。
 
-This guide describes the steps to install and configure Harbor by using the online or offline installer. The installation processes are almost the same.
+本指南描述了使用在线或离线安装程序安装和配置Harbor的步骤。安装过程几乎是一样的。
 
-If you run a previous version of Harbor, you may need to update ```harbor.yml``` and migrate the data to fit the new database schema. For more details, please refer to **[Harbor Migration Guide](migration_guide.md)**.
+如果您运行的是Harbor以前的版本，您可能需要更新 ```harbor.yml``` 。并迁移数据以适应新的数据库schema。详情请参阅  **[Harbor 迁移指南](migration_guide.md)**.
 
-In addition, the deployment instructions on Kubernetes has been created by the community. Refer to [Harbor on Kubernetes using Helm](https://github.com/goharbor/harbor-helm) for details.
+此外，社区还创建了Kubernetes上的部署说明。详情请参考[Harbor on Kubernetes using Helm](https://github.com/goharbor/harbor-helm)。
 
-## Harbor Components
+## Harbor 组件
 
-|Component|Version|
+|组件|版本号|
 |---|---|
 |Postgresql|9.6.10-1.ph2|
 |Redis|4.0.10-1.ph2|
@@ -28,71 +28,72 @@ In addition, the deployment instructions on Kubernetes has been created by the c
 |Helm|2.9.1|
 |Swagger-ui|3.22.1|
 
-## Prerequisites for the target host
+## 目标主机的先决条件
 
-Harbor is deployed as several Docker containers, and, therefore, can be deployed on any Linux distribution that supports Docker. The target host requires Docker, and Docker Compose to be installed.
+Harbor被部署为几个Docker容器，因此可以部署在任何支持Docker的Linux发行版上。目标主机需要安装Docker和Docker Compose。
 
-### Hardware
+### 硬件
 
-|Resource|Capacity|Description|
+|资源|容量|描述|
 |---|---|---|
 |CPU|minimal 2 CPU|4 CPU is preferred|
 |Mem|minimal 4GB|8GB is preferred|
 |Disk|minimal 40GB|160GB is preferred|
 
-### Software
+### 软件
 
-|Software|Version|Description|
+|软件|版本号|描述|
 |---|---|---|
 |Docker engine|version 17.06.0-ce+ or higher|For installation instructions, please refer to: [docker engine doc](https://docs.docker.com/engine/installation/)|
 |Docker Compose|version 1.18.0 or higher|For installation instructions, please refer to: [docker compose doc](https://docs.docker.com/compose/install/)|
 |Openssl|latest is preferred|Generate certificate and keys for Harbor|
 
-### Network ports
+### 网络端口
 
-|Port|Protocol|Description|
+|端口|协议|描述|
 |---|---|---|
 |443|HTTPS|Harbor portal and core API will accept requests on this port for https protocol, this port can change in config file|
 |4443|HTTPS|Connections to the Docker Content Trust service for Harbor, only needed when Notary is enabled, This port can change in config file|
-|80|HTTP|Harbor portal and core API will accept requests on this port for http protocol|
+|80|HTTP|Harbor 门户和核心API将在此端口上接受HTTP协议的请求
 
-## Installation Steps
+## 安装步骤
 
-The installation steps boil down to the following
+安装步骤可归结为以下几个步骤
 
-1. Download the installer;
-2. Configure **harbor.yml**;
-3. Run **install.sh** to install and start Harbor;
+1. 下载安装程序;
+2. 配置 **harbor.yml**;
+3. 执行 **install.sh** 来安装和启动 Harbor;
 
-#### Downloading the installer:
+#### 下载安装程序:
 
-The binary of the installer can be downloaded from the [release](https://github.com/goharbor/harbor/releases) page. Choose either online or offline installer. Use *tar* command to extract the package.
+安装程序的二进制文件可以从 [release](https://github.com/goharbor/harbor/releases) 页面下载。选择在线或离线安装程序。使用 *tar* 命令提取包。
 
-Online installer:
+在线安装程序:
 
 ```bash
     $ tar xvf harbor-online-installer-<version>.tgz
 ```
 
-Offline installer:
+离线安装程序:
 
 ```bash
     $ tar xvf harbor-offline-installer-<version>.tgz
 ```
 
-#### Configuring Harbor
+#### 配置 Harbor
 
-Configuration parameters are located in the file **harbor.yml**.
+配置参数位于文件**harbor.yml**中。
 
-There are two categories of parameters, **required parameters** and **optional parameters**.
+参数有两类，**必选参数**和**可选参数**。
 
-- **System level parameters**: These parameters are required to be set in the configuration file. They will take effect if a user updates them in ```harbor.yml``` and run the ```install.sh``` script to reinstall Harbor.
+- **系统级参数**: 需要在配置文件中设置这些参数。在 ```harbor.yml``` 中更新它们，然后执行 ```install.sh``` 脚本重新安装 Harbor，才能生效。
 
-- **User level parameters**: These parameters can update after the first time harbor started on Web Portal. In particular, you must set the desired **auth_mode** before registering or creating any new users in Harbor. When there are users in the system (besides the default admin user), **auth_mode** cannot be changed.
+- **用户级参数**: 这些参数可以在Web Portal第一次启动harbor后进行更新。特别是，您必须在注册或在Harbor中创建任何新用户之前设置
+所需的**auth_mode**。当系统中有用户时(除了默认的admin用户之外)，不能更改**auth_mode**。
 
-The parameters are described below - note that at the very least, you will need to change the **hostname** attribute.
+下面描述了参数——注意，至少需要更改**hostname**属性。
 
-##### Required parameters
+##### 必需的参数
 
 - **hostname**: The target host's hostname, which is used to access the Portal and the registry service. It should be the IP address or the fully qualified domain name (FQDN) of your target machine, e.g., `192.168.1.10` or `reg.yourdomain.com`. _Do NOT use `localhost` or `127.0.0.1` or `0.0.0.0` for the hostname - the registry service needs to be accessible by external clients!_
 
@@ -118,7 +119,7 @@ The parameters are described below - note that at the very least, you will need 
        - **host**: The URL of the syslog server.
        - **port**: The port on which the syslog server listens.
      
-##### optional parameters
+##### 可选参数
 
 - **http**:
   - **port** : the port number of you http
@@ -180,15 +181,16 @@ refer to **[Configuring Harbor with HTTPS Access](configure_https.md)**.
   - **jobservice_db_index**: db index for jobservice
   - **chartmuseum_db_index**: db index for chartmuseum
 
-#### Configuring storage backend (optional)
+#### 配置存储后端(可选)
 
-- **storage_service**: By default, Harbor stores images and chart on your local filesystem. In a production environment, you may consider use other storage backend instead of the local filesystem, like S3, OpenStack Swift, Ceph, etc. These parameters are configurations for registry.
+- **storage_service**: 默认情况下，Harbor将镜像和chart存储在本地文件系统中。
+在生产环境中，您可以考虑使用其他存储后端而不是本地文件系统，如S3、OpenStack Swift、Ceph等。这些参数是注册表的配置。
   - **ca_bundle**:  The path to the custom root ca certificate, which will be injected into the trust store of registry's and chart repository's containers.  This is usually needed when the user hosts a internal storage with self signed certificate.
   - **provider_name**: Storage configs for registry, default is filesystem. for more info about this configuration please refer https://docs.docker.com/registry/configuration/
   - **redirect**:
     - **disable**: set disable to true when you want to disable registry redirect
 
-For example, if you use Openstack Swift as your storage backend, the parameters may look like this:
+例如，如果你使用Openstack Swift作为你的存储后端，参数可能是这样的:
 
 ``` yaml
 storage_service:
@@ -205,78 +207,82 @@ storage_service:
     disable: false
 ```
 
-_NOTE: For detailed information on storage backend of a registry, refer to [Registry Configuration Reference](https://docs.docker.com/registry/configuration/) ._
+_注意: 有关注册表存储后端的详细信息，请参考[注册表配置参考](https://docs.docker.com/registry/configuration/) ._
 
-#### Finishing installation and starting Harbor
+#### 完成安装和启动 Harbor
 
-Once **harbor.yml** and storage backend (optional) are configured, install and start Harbor using the `install.sh` script.  Note that it may take some time for the online installer to download Harbor images from Docker hub.
+一旦 **harbor.yml** 和存储后端 (可选) 被配置, 使用 `install.sh` 脚本安装并启动Harbor
+请注意，在线安装程序从Docker hub下载Harbor镜像可能需要一些时间。
 
-##### Default installation (without Notary/Clair)
+##### 默认安装 (没有 Notary/Clair)
 
-Harbor has integrated with Notary and Clair (for vulnerability scanning). However, the default installation does not include Notary or Clair service.
+Harbor 集成了 Notary 和 Clair (漏洞扫描)。但是，默认安装不包括Notary或Clair服务。
 
 ``` sh
     $ sudo ./install.sh
 ```
 
-If everything worked properly, you should be able to open a browser to visit the admin portal at `http://reg.yourdomain.com` (change `reg.yourdomain.com` to the hostname configured in your `harbor.yml`). Note that the default administrator username/password are admin/Harbor12345.
+如果一切正常，您应该能够打开浏览器访问管理页面 `http://reg.yourdomain.com` (将`reg.yourdomain.com`更改为在`port.yml`中配置的主机名 `harbor.yml`)。注意，默认的管理员用户名/密码是 admin/Harbor12345。
 
-Log in to the admin portal and create a new project, e.g. `myproject`. You can then use docker commands to login and push images (By default, the registry server listens on port 80):
+登录到管理门户并创建一个新项目。例如：`myproject`。然后你可以使用docker命令来登录和推送镜像(默认情况下，注册服务器监听端口80):
 
 ```sh
 $ docker login reg.yourdomain.com
 $ docker push reg.yourdomain.com/myproject/myrepo:mytag
 ```
 
-**IMPORTANT:** The default installation of Harbor uses _HTTP_ - as such, you will need to add the option `--insecure-registry` to your client's Docker daemon and restart the Docker service.
+**重要:** Harbor的默认安装使用 _HTTP_ - 这样，您将需要添加选项 `--insecure-registry` 到您的客户端Docker守护进程中，并重新启动Docker服务。
 
-##### Installation with Notary
-To install Harbor with Notary service, add a parameter when you run `install.sh`:
+##### 安装带有公证服务的Harbor
+要安装带有公证服务的Harbor，请在运行`install.sh`时添加一个参数:
 
 ```sh
     $ sudo ./install.sh --with-notary
 ```
 
-**Note**: For installation with Notary the parameter **ui_url_protocol** must be set to "https". For configuring HTTPS please refer to the following sections.
+**注意**: 安装带有公证服务的Harbor， 参数 **ui_url_protocol** 必须被设置为 "https"。要配置HTTPS，请参考以下部分。
 
-More information about Notary and Docker Content Trust, please refer to [Docker's documentation](https://docs.docker.com/engine/security/trust/content_trust/).
+关于公证和Docker内容信任的更多信息，请参考 [Docker的文档](https://docs.docker.com/engine/security/trust/content_trust/).
 
 ##### Installation with Clair
 
-To install Harbor with Clair service, add a parameter when you run `install.sh`:
+要安装带Clair服务的Harbor，请在运行`install.sh`时添加一个参数:
 
 ```sh
     $ sudo ./install.sh --with-clair
 ```
 
-For more information about Clair, please refer to Clair's documentation:
+关于Clair的更多信息，请参阅Clair的文档:
 `https://coreos.com/clair/docs/2.0.1/`
 
 ##### Installation with chart repository service
 
 To install Harbor with chart repository service, add a parameter when you run ```install.sh```:
+要安装带有 chart 存储库服务的Harbor，请在运行 ```install.sh```时添加一个参数:
 
 ```sh
     $ sudo ./install.sh --with-chartmuseum
 ```
 
-**Note**: If you want to install Notary, Clair and chart repository service, you must specify all the parameters in the same command:
+**注意**: 如果您想安装 Notary, Clair 和 chart repository 服务, 您必须在同一个命令中指定所有参数:
 
 ```sh
     $ sudo ./install.sh --with-notary --with-clair --with-chartmuseum
 ```
 
-For information on how to use Harbor, please refer to **[User Guide of Harbor](user_guide.md)** .
+如何使用Harbor，请参考 **[User Guide of Harbor](user_guide.md)** .
 
-#### Configuring Harbor with HTTPS access
+#### 配置Harbor使用HTTPS访问
 
-Harbor does not ship with any certificates, and, by default, uses HTTP to serve requests. While this makes it relatively simple to set up and run - especially for a development or testing environment - it is **not** recommended for a production environment.  To enable HTTPS, please refer to **[Configuring Harbor with HTTPS Access](configure_https.md)**.
+Harbor不附带任何证书，默认情况下使用HTTP来处理请求。虽然这使得设置和运行相对简单—特别是对于开发或测试环境—但是不推荐用于生产环境。
+要启用HTTPS，请参考 **[使用HTTPS访问配置端口](configure_https.md)**。
 
-### Managing Harbor's lifecycle
+### 管理Harbor的生命周期
 
-You can use docker-compose to manage the lifecycle of Harbor. Some useful commands are listed as follows (must run in the same directory as *docker-compose.yml*).
+您可以使用docker-compose来管理Harbor的生命周期。下面列出了一些有用的命令(必须运行在与*docker-compose.yml*相同的目录中)。
 
-Stopping Harbor:
+
+停止 Harbor:
 
 ``` sh
 $ sudo docker-compose stop
@@ -291,7 +297,7 @@ Stopping harbor-db          ... done
 Stopping harbor-log         ... done
 ```
 
-Restarting Harbor after stopping:
+停止后启动 Harbor:
 
 ``` sh
 $ sudo docker-compose start
@@ -306,7 +312,9 @@ Starting jobservice  ... done
 Starting proxy       ... done
 ```
 
-To change Harbor's configuration, first stop existing Harbor instance and update `harbor.yml`. Then run `prepare` script to populate the configuration. Finally re-create and start Harbor's instance:
+要更改Harbor的配置，首先停止现有的Harbor实例并更新 `harbor.yml`。然后运行 `prepare` 脚本来填充配置。
+最后重新创建并启动Harbor的实例:
+
 
 ``` sh
 $ sudo docker-compose down -v
@@ -315,22 +323,22 @@ $ sudo prepare
 $ sudo docker-compose up -d
 ```
 
-Removing Harbor's containers while keeping the image data and Harbor's database files on the file system:
+删除Harbor的容器，同时在文件系统中保留镜像数据和Harbor的数据库文件:
 
 ``` sh
 $ sudo docker-compose down -v
 ```
 
-Removing Harbor's database and image data (for a clean re-installation):
+删除Harbor的数据库和镜像数据(为了干净的重新安装):
 
 ``` sh
 $ rm -r /data/database
 $ rm -r /data/registry
 ```
 
-#### *Managing lifecycle of Harbor when it's installed with Notary, Clair and chart repository service*
+#### *管理 Harbor 的生命周期，当它安装了Notary, Clair 和 chart repository 服务*
 
-If you want to install Notary, Clair and chart repository service together, you should include all the components in the prepare commands:
+如果你想一起安装 Notary, Clair 和 chart repository 服务,你应该包括所有的组件在准备命令:
 
 ``` sh
 $ sudo docker-compose down -v
@@ -339,35 +347,44 @@ $ sudo prepare --with-notary --with-clair --with-chartmuseum
 $ sudo docker-compose up -d
 ```
 
-Please check the [Docker Compose command-line reference](https://docs.docker.com/compose/reference/) for more on docker-compose.
+请查看[Docker撰写命令行参考](https://docs.docker.com/compose/reference/) 以获得关于docker-compose的更多信息。
 
-### Persistent data and log files
+### 持久数据和日志文件
 
-By default, registry data is persisted in the host's `/data/` directory.  This data remains unchanged even when Harbor's containers are removed and/or recreated, you can edit the `data_volume` in `harbor.yml` file to change this directory.
+默认情况下，注册表数据保存在主机的`/data/`目录中。即使在删除或者重新创建Harbor的容器时，这些数据仍然保持不变，您可以在`harbor.yml`中编辑 `data_volume`。文件来更改此目录。
 
-In addition, Harbor uses *rsyslog* to collect the logs of each container. By default, these log files are stored in the directory `/var/log/harbor/` on the target host for troubleshooting, also you can change the log directory in `harbor.yml`.
 
-## Configuring Harbor listening on a customized port
 
-By default, Harbor listens on port 80(HTTP) and 443(HTTPS, if configured) for both admin portal and docker commands, these default ports can configured in `harbor.yml`
+另外，Harbor使用*rsyslog*来收集每个容器的日志。默认情况下，这些日志文件存储在目标主机的 `/var/log/harbor/`目录中，以便进行故障排除，
+您还可以在 `harbor.yml`中更改日志目录。
 
-## Configuring Harbor using the external database
 
-Currently, only PostgreSQL database is supported by Harbor.
-To user an external database, just uncomment the `external_database` section in `harbor.yml` and fill the necessary information. Four databases are needed to be create first by users for Harbor core, Clair, Notary server and Notary signer. And the tables will be generated automatically when Harbor starting up.
+## 配置端口监听自定义端口
 
-## Manage user settings
+默认情况下，对于管理门户和docker命令，Harbor监听端口80(HTTP)和443(如果配置为HTTPS)，这些默认端口可以在`harbor.yml`中配置。
 
-After release 1.8.0, User settings are separated with system settings, and all user settings should be configured in web console or by HTTP request.
-Please refer [Configure User Settings](configure_user_settings.md) to config user settings.
+## 使用外部数据库配置Harbor
 
-## Performance tuning
+目前，只有PostgreSQL数据库被Harbor支持。
 
-By default, Harbor limits the CPU usage of Clair container to 150000 and avoids its using up all the CPU resources. This is defined in the docker-compose.clair.yml file. You can modify it based on your hardware configuration.
+要使用外部数据库，只需取消 `harbor.yml` 中的 `external_database` 部分的注释。并填写必要的信息。对于Harbor core、Clair、公证服务
+和公证签名者，用户需要先创建四个数据库。当Harbor启动时，这些表会自动生成。
 
-## Troubleshooting
+## 管理用户设置
 
-1. When Harbor does not work properly, run the below commands to find out if all containers of Harbor are in **UP** status:
+发布1.8.0之后，用户设置与系统设置分离，所有用户设置都应该在web控制台或通过HTTP请求进行配置。
+
+请参考[配置用户设置](configure_user_settings.md)来配置用户设置。
+
+## 性能调优
+
+
+默认情况下，Harbor将Clair container的CPU使用量限制在150000以内，避免了它耗尽所有的CPU资源。
+这是在docker-compose.clair.yml中定义的。您可以根据您的硬件配置来修改它。
+
+## 故障排除
+
+1. 当Harbor不能正常工作时，运行下面的命令，看看是不是所有的Harbor的container都处于 **UP** 状态:
 ```
     $ sudo docker-compose ps
         Name                     Command               State                    Ports
@@ -383,12 +400,15 @@ By default, Harbor limits the CPU usage of Clair container to 150000 and avoids 
   registryctl         /harbor/start.sh                 Up
 ```
 
-If a container is not in **UP** state, check the log file of that container in directory `/var/log/harbor`. For example, if the container `harbor-core` is not running, you should look at the log file `core.log`.
+如果容器没有处于**UP**状态，请在目录 `/var/log/harbor` 中检查该容器的日志文件。
+例如，如果容器 `harbor-core` 没有运行，您应该查看日志文件 `core.log`。
 
-2.When setting up Harbor behind an nginx proxy or elastic load balancing, look for the line below, in `common/config/nginx/nginx.conf` and remove it from the sections if the proxy already has similar settings: `location /`, `location /v2/` and `location /service/`.
 
+2.当在nginx代理或负载均衡器后设置Harbor时，请查看文件`common/config/nginx/nginx.conf`。
+如果代理已经有类似的设置:`location /`, `location /v2/` and `location /service/`，则将其从部分中删除。
 ``` sh
 proxy_set_header X-Forwarded-Proto $scheme;
 ```
 
-and re-deploy Harbor refer to the previous section "Managing Harbor's lifecycle".
+
+重新部署Harbor请参考前面的章节“管理Harbor的生命周期”。
